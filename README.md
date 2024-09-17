@@ -32,10 +32,9 @@ To run the project (after everything is installed) use
 make run
 ```
 
-The project will then print out a small 'hello' message.
-
-**TODO**: Implement the project
-**TODO**: Review this section
+The project will then print out instructions on how to interact with it, such as inputs and commands.<br>
+Once the necessary inputs have been given as instructed, the program will output the state of the grid.
+The inputs should follow the format specified in the brief.
 
 ### Running tests
 
@@ -44,9 +43,6 @@ To run the test suit simply use
 make test
 ```
 and `pytest` will identify and run all tests in the project.
-
-**TODO**: Implement the tests
-**TODO**: Review this section
 
 ## Assumptions
 
@@ -67,22 +63,20 @@ I also considered using a state machine (`{"N": {"L": "W", "R": "E"}, ...}`) for
 
 Another assumption I've made is that 2 robots cannot occupy the same grid position.
 
-**TODO**: Review this section
-
 ## Limitations, or the things I would have done with infinite time
 
-None yet, though the project isn't complete yet either.
-If I have the time, I will attempt to implement an ASCII visualisation of the grid.
+Given infinite time, I would have liked to implement an ASCII visualisation of the grid.
+
+I would also have liked to set up automated cleanup (isort/black/etc.), but didn't find the time to fiddle with all the configs.
+It's definitely something I would spend time on if this was a bigger project though.
+
+The timestamp of my commits (and of my submission as well) will definitely look erratic - those are the joys of WFH with kids :)
 
 Note: the versions of python/poetry/etc ran for this project are the versions I have been using for a few months - they may be slightly behind the most up-to-date ones.
 
-**TODO**: Review this section
-
 ### Actually broken things
 
-None yet, though the project isn't complete yet either.
-
-**TODO**: Review this section
+Fortunately, nothing seems broken at this point
 
 ## Use of make commands
 
