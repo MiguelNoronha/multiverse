@@ -22,7 +22,8 @@ class GridTech:
         self._robot_data[robot] = {
             "last_known_position": Position(x, y),
             "last_known_orientation": Orientation(orientation),
-            "status": RobotStatus.OK
+            "status": RobotStatus.OK,
+            "order": len(self._robot_data)
         }
         self._occupied_positions.add(self._robot_data[robot]["last_known_position"].tuple)
 
@@ -63,3 +64,16 @@ class GridTech:
 
         self._robot_data[robot]["last_known_orientation"] = new_orientation
         return True
+
+    def __str__(self):
+        result = ""
+
+        for robot_data in sorted(self._robot_data.values(), key=lambda robot_data: robot_data["order"]):
+            if result:
+                result += "\n"
+
+            result += f"({robot_data["last_known_position"].x}, {robot_data["last_known_position"].y}, {robot_data["last_known_orientation"]})"
+            if robot_data["status"] == RobotStatus.LOST:
+                result += " LOST"
+
+        return result

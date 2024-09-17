@@ -111,7 +111,8 @@ def test__calculate_updated_data(grid, robot_1, initial_state, instruction, resu
             {
                 "last_known_position": Position(1, 1),
                 "last_known_orientation": Orientation("E"),
-                "status": RobotStatus.OK
+                "status": RobotStatus.OK,
+                "order": 0
             },
         ),
         (
@@ -129,7 +130,8 @@ def test__calculate_updated_data(grid, robot_1, initial_state, instruction, resu
             {
                 "last_known_position": Position(5, 0),
                 "last_known_orientation": Orientation("E"),
-                "status": RobotStatus.LOST
+                "status": RobotStatus.LOST,
+                "order": 0
             },
         ),
     )
@@ -151,3 +153,46 @@ def test_update_robot_error(grid, robot_1, robot_2):
         grid.update_robot_state(robot_2, "F")
 
     assert "A robot cannot move into the a position another robot already occupies" in str(exception_info.value)
+
+
+@pytest.mark.parametrize(
+    "robot_data, result",
+    (
+        ({}, ""),
+        (
+            {1: {
+                "last_known_position": Position(1, 2),
+                "last_known_orientation": Orientation("N"),
+                "status": RobotStatus.OK,
+                "order": 1
+            }},
+            "(1, 2, N)"
+        ),
+        (
+            {
+                1: {
+                    "last_known_position": Position(1, 2),
+                    "last_known_orientation": Orientation("N"),
+                    "status": RobotStatus.OK,
+                    "order": 1
+                },
+                2: {
+                    "last_known_position": Position(10, 3),
+                    "last_known_orientation": Orientation(90),
+                    "status": RobotStatus.OK,
+                    "order": 2
+                },
+                3: {
+                    "last_known_position": Position(1, 2),
+                    "last_known_orientation": Orientation("S"),
+                    "status": RobotStatus.LOST,
+                    "order": 3
+                },
+            },
+            "(1, 2, N)\n(10, 3, E)\n(1, 2, S) LOST"
+        ),
+    )
+)
+def test__str(grid, robot_data, result):
+    grid._robot_data = robot_data
+    assert str(grid) == result
