@@ -50,7 +50,7 @@ and `pytest` will identify and run all tests in the project.
 
 ## Assumptions
 
-Before starting to work on the implementation I have spent a bit of time thinking of how to approach it.<br>
+Before starting to work on the implementation I spent a bit of time thinking of how to approach it.<br>
 This problem could easily be solved in a 1-file script.
 However, that approach would not mimic the real-life scenario very well. It would also not be very nice to look through.
 

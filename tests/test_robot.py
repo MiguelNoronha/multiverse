@@ -28,4 +28,4 @@ def test_move_error(robot, instruction):
     with pytest.raises(InstructionError) as exception_info:
         robot.move(instruction)
 
-    assert "Not sure what'll be in here yet" in str(exception_info.value)
+    assert "The instruction provided is not valid" in str(exception_info.value)
