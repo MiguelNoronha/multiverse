@@ -1,14 +1,18 @@
+from multiverse.constants import DEGREE_INSTRUCTIONS, DISTANCE_INSTRUCTIONS
 from multiverse.exceptions import InstructionError
 
 
 class Robot:
     @staticmethod
     def move(instruction: str) -> tuple[int, int]:
-        if instruction == "L":
-            return 0, -90
-        elif instruction == "R":
-            return 0, 90
-        elif instruction == "F":
-            return 1, 0
-        else:
+        try:
+            distance = DISTANCE_INSTRUCTIONS[instruction]
+        except KeyError:
             raise InstructionError("The instruction provided is not valid")
+
+        try:
+            degree = DEGREE_INSTRUCTIONS[instruction]
+        except KeyError:
+            raise InstructionError("The instruction provided is not valid")
+
+        return distance, degree

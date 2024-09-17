@@ -22,6 +22,10 @@ class Position:
         self.y += vector.y
         return self
 
+    @property
+    def tuple(self):
+        return self.x, self.y
+
 
 @dataclass
 class Orientation:

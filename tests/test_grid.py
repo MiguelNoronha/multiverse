@@ -1,8 +1,12 @@
 import pytest
 from unittest.mock import MagicMock
 
+from multiverse.constants import DISTANCE_INSTRUCTIONS, DEGREE_INSTRUCTIONS
+from multiverse.data import Position, Orientation
+from multiverse.enums import RobotStatus
 from multiverse.exceptions import OutOfBoundsError, PositionsClashError
 from multiverse.grid import GridTech
+from multiverse.robot import Robot
 
 
 @pytest.fixture
@@ -12,12 +16,12 @@ def grid():
 
 @pytest.fixture
 def robot_1():
-    return MagicMock()
+    return MagicMock(spec=Robot, move=lambda s: (DISTANCE_INSTRUCTIONS[s], DEGREE_INSTRUCTIONS[s]))
 
 
 @pytest.fixture
 def robot_2():
-    return MagicMock()
+    return MagicMock(spec=Robot, move=lambda s: (DISTANCE_INSTRUCTIONS[s], DEGREE_INSTRUCTIONS[s]))
 
 
 @pytest.mark.parametrize(
@@ -71,32 +75,71 @@ def test_add_robot_error__clash(grid, robot_1, robot_2):
 
 
 @pytest.mark.parametrize(
-    "initial_state, updates, final_state",
+    "initial_state, instruction, result",
+    (
+        ((0, 0, "N"), "R", (Position(0, 0), Orientation("E"))),
+        ((0, 0, "E"), "F", (Position(1, 0), Orientation("E"))),
+        ((1, 0, "E"), "L", (Position(1, 0), Orientation("N"))),
+        ((1, 0, "N"), "F", (Position(1, 1), Orientation("N"))),
+        ((1, 1, "N"), "R", (Position(1, 1), Orientation("E"))),
+        ((1, 1, "E"), "F", (Position(2, 1), Orientation("E"))),
+        ((2, 1, "E"), "F", (Position(3, 1), Orientation("E"))),
+        ((3, 1, "E"), "F", (Position(4, 1), Orientation("E"))),
+        ((4, 1, "E"), "F", (Position(5, 1), Orientation("E"))),
+        ((5, 1, "E"), "F", (Position(6, 1), Orientation("E"))),
+    )
+)
+def test__calculate_updated_data(grid, robot_1, initial_state, instruction, result):
+    grid.add_robot(robot_1, *initial_state)
+
+    assert grid._calculate_updated_data(robot_1, instruction) == result
+
+
+@pytest.mark.parametrize(
+    "initial_state, updates, mocked_data, final_state",
     (
         (
             (0, 0, "N"),
             ["R", "F", "L", "F", "R"],
+            [
+                (Position(0, 0), Orientation("E")),
+                (Position(1, 0), Orientation("E")),
+                (Position(1, 0), Orientation("N")),
+                (Position(1, 1), Orientation("N")),
+                (Position(1, 1), Orientation("E")),
+            ],
             {
-                "last_known_position": (1, 1),
-                "last_known_orientation": "E",
-                "status": "OK"
+                "last_known_position": Position(1, 1),
+                "last_known_orientation": Orientation("E"),
+                "status": RobotStatus.OK
             },
         ),
         (
             (0, 0, "N"),
             ["R", "F", "F", "F", "F", "F", "F", "L", "L", "F", "F"],
+            [
+                (Position(0, 0), Orientation("E")),
+                (Position(1, 0), Orientation("E")),
+                (Position(2, 0), Orientation("E")),
+                (Position(3, 0), Orientation("E")),
+                (Position(4, 0), Orientation("E")),
+                (Position(5, 0), Orientation("E")),
+                (Position(6, 0), Orientation("E")),
+            ],
             {
-                "last_known_position": (5, 0),
-                "last_known_orientation": "E",
-                "status": "LOST"
+                "last_known_position": Position(5, 0),
+                "last_known_orientation": Orientation("E"),
+                "status": RobotStatus.LOST
             },
         ),
     )
 )
-def test_update_robot(grid, robot_1, initial_state, updates, final_state):
+def test_update_robot(mocker, grid, robot_1, initial_state, updates, mocked_data, final_state):
+    mocker.patch.object(GridTech, "_calculate_updated_data", side_effect=mocked_data)
+
     grid.add_robot(robot_1, *initial_state)
     for update in updates:
-        grid.update_robot_state(*update)
+        grid.update_robot_state(robot_1, update)
 
     assert grid._robot_data[robot_1] == final_state
 
