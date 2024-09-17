@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import MagicMock
 
 from multiverse.exceptions import OutOfBoundsError, PositionsClashError
 from multiverse.grid import GridTech
@@ -10,18 +11,13 @@ def grid():
 
 
 @pytest.fixture
-def robot_patch(mocker):
-    return mocker.patch("multiverse.robot.Robot", autospec=True)
+def robot_1():
+    return MagicMock()
 
 
 @pytest.fixture
-def robot_1(robot_patch):
-    return robot_patch()
-
-
-@pytest.fixture
-def robot_2(robot_patch):
-    return robot_patch()
+def robot_2():
+    return MagicMock()
 
 
 @pytest.mark.parametrize(
@@ -34,11 +30,12 @@ def robot_2(robot_patch):
         (["robot_1", "robot_2"], [(0, 0), (5, 10)]),
     )
 )
-def test_add_robot(request, grid, robots, coordinates):
+def test_add_robots(request, grid, robots, coordinates):
     for i in range(len(robots)):
-        grid.add_robot(request.getfixturevalue(robots[i]), *coordinates[i])
+        grid.add_robot(request.getfixturevalue(robots[i]), *coordinates[i], "N")
 
-    assert False  # TODO: We'll be able to assert the internal state of the grid once implemented
+    assert len(grid._robot_data) == len(robots)
+    assert len(grid._occupied_positions) == len(coordinates)
 
 
 @pytest.mark.parametrize(
@@ -60,14 +57,54 @@ def test_add_robot(request, grid, robots, coordinates):
 )
 def test_add_robot_error__bounds(grid, robot_1, x, y):
     with pytest.raises(OutOfBoundsError) as exception_info:
-        grid.add_robot(robot_1, x, y)
+        grid.add_robot(robot_1, x, y, "N")
 
-    assert "Not sure what'll be in here yet" in str(exception_info.value)
+    assert "A robot cannot be placed outside the grid" in str(exception_info.value)
 
 
 def test_add_robot_error__clash(grid, robot_1, robot_2):
-    grid.add_robot(robot_1, 0, 0)
+    grid.add_robot(robot_1, 0, 0, "N")
     with pytest.raises(PositionsClashError) as exception_info:
-        grid.add_robot(robot_2, 0, 0)
+        grid.add_robot(robot_2, 0, 0, "N")
 
-    assert "Not sure what'll be in here yet" in str(exception_info.value)
+    assert "A robot cannot be placed in the same position as another robot" in str(exception_info.value)
+
+
+@pytest.mark.parametrize(
+    "initial_state, updates, final_state",
+    (
+        (
+            (0, 0, "N"),
+            ["R", "F", "L", "F", "R"],
+            {
+                "last_known_position": (1, 1),
+                "last_known_orientation": "E",
+                "status": "OK"
+            },
+        ),
+        (
+            (0, 0, "N"),
+            ["R", "F", "F", "F", "F", "F", "F", "L", "L", "F", "F"],
+            {
+                "last_known_position": (5, 0),
+                "last_known_orientation": "E",
+                "status": "LOST"
+            },
+        ),
+    )
+)
+def test_update_robot(grid, robot_1, initial_state, updates, final_state):
+    grid.add_robot(robot_1, *initial_state)
+    for update in updates:
+        grid.update_robot_state(*update)
+
+    assert grid._robot_data[robot_1] == final_state
+
+
+def test_update_robot_error(grid, robot_1, robot_2):
+    grid.add_robot(robot_1, 0, 0, "N")
+    grid.add_robot(robot_2, 0, 1, "S")
+    with pytest.raises(PositionsClashError) as exception_info:
+        grid.update_robot_state(robot_2, "F")
+
+    assert "A robot cannot move into the a position another robot already occupies" in str(exception_info.value)
