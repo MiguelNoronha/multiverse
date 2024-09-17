@@ -65,6 +65,8 @@ A lot of these aspects are not present in the challenge brief, and they make the
 Regarding orientation, it will probably be implemented as a degree (0-359). I considered the possibility of using a deque as it's representation, but it could be clunkier to update if any changes are necessary in the future.<br>
 I also considered using a state machine (`{"N": {"L": "W", "R": "E"}, ...}`) for maintaining orientation - this could work well within the frame of the problem depending on how other parts were implemented, but it would not scale well if we wished to introduce more precision to the compasses.
 
+Another assumption I've made is that 2 robots cannot occupy the same grid position.
+
 **TODO**: Review this section
 
 ## Limitations, or the things I would have done with infinite time
